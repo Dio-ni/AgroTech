@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🌾 Crop Yield Predictor</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Manrope:wght@300;500;700;800&display=swap');
+
+  :root {
+    --bg:      #0b1a10;
+    --card:    #122018;
+    --border:  #1f3a28;
+    --accent:  #3dffa0;
+    --accent2: #ffe048;
+    --accent3: #3dcfff;
+    --text:    #cce8d4;
+    --muted:   #5a7d64;
+    --red:     #ff5e5e;
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+  body {
+    font-family: 'Manrope', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 0 0 60px;
+    background-image:
+      radial-gradient(ellipse 60% 40% at 80% 10%, #0d3a1e55 0%, transparent 70%),
+      radial-gradient(ellipse 40% 60% at 10% 80%, #1a4a2555 0%, transparent 70%);
+  }
+
+  /* ── Header ── */
+  header {
+    border-bottom: 1px solid var(--border);
+    padding: 28px 40px 24px;
+    display: flex;
+    align-items: center;
+    gap: 18px;
+  }
+  .logo-icon {
+    width: 46px; height: 46px;
+    background: var(--accent);
+    border-radius: 12px;
+    display: flex; align-items:center; justify-content:center;
+    font-size: 22px;
+    flex-shrink: 0;
+  }
+  header h1 {
+    font-family: 'Space Mono', monospace;
+    font-size: 1.25rem;
+    color: var(--accent);
+    letter-spacing: -0.5px;
+  }
+  header p {
+    font-size: 0.78rem;
+    color: var(--muted);
+    margin-top: 2px;
+  }
+  .badge {
+    margin-left: auto;
+    background: #1f3a28;
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 5px 14px;
+    font-size: 0.72rem;
+    color: var(--accent2);
+    font-family: 'Space Mono', monospace;
+    white-space: nowrap;
+  }
+
+  /* ── Layout ── */
+  .layout {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 28px;
+    max-width: 1100px;
+    margin: 36px auto 0;
+    padding: 0 32px;
+  }
+  @media (max-width: 780px) {
+    .layout { grid-template-columns: 1fr; padding: 0 16px; }
+    header { padding: 20px 16px; }
+    .badge { display: none; }
+  }
+
+  /* ── Card ── */
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 28px;
+  }
+  .card-title {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.78rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 22px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .card-title span {
+    width: 22px; height: 22px;
+    border-radius: 6px;
+    display:inline-flex; align-items:center; justify-content:center;
+    font-size: 12px;
+  }
+  .card-title .dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--accent);
+    flex-shrink: 0;
+  }
+
+  /* ── Form fields ── */
+  .field { margin-bottom: 18px; }
+  label {
+    display: block;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--accent);
+    margin-bottom: 7px;
+    letter-spacing: 0.3px;
+  }
+  label em {
+    font-style: normal;
+    font-weight: 300;
+    color: var(--muted);
+    margin-left: 6px;
+  }
+
+  select, input[type=range] {
+    width: 100%;
+    outline: none;
+    transition: border-color .2s, box-shadow .2s;
+  }
+
+  select {
+    background: #0d1a10;
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    color: var(--text);
+    padding: 10px 14px;
+    font-size: 0.9rem;
+    font-family: 'Manrope', sans-serif;
+    cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%233dffa0' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+    padding-right: 36px;
+  }
+  select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px #3dffa020; }
+
+  .range-wrap { position: relative; }
+  input[type=range] {
+    -webkit-appearance: none;
+    height: 4px;
+    background: var(--border);
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 18px; height: 18px;
+    background: var(--accent);
+    border-radius: 50%;
+    border: 3px solid var(--bg);
+    box-shadow: 0 0 0 2px var(--accent);
+  }
+  input[type=range]:focus { outline: none; }
+  .range-val {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.75rem;
+    color: var(--muted);
+    margin-top: 6px;
+  }
+  .range-val strong {
+    font-family: 'Space Mono', monospace;
+    color: var(--accent2);
+    font-size: 0.85rem;
+  }
+
+  /* ── Predict Button ── */
+  .btn-predict {
+    width: 100%;
+    padding: 15px;
+    background: var(--accent);
+    color: #0b1a10;
+    border: none;
+    border-radius: 12px;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.95rem;
+    font-weight: 700;
+    cursor: pointer;
+    letter-spacing: 1px;
+    transition: transform .15s, box-shadow .15s, background .15s;
+    margin-top: 8px;
+  }
+  .btn-predict:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px #3dffa040;
+  }
+  .btn-predict:active { transform: translateY(0); }
+
+  /* ── Result Panel ── */
+  .result-panel {
+    grid-column: 1 / -1;
+  }
+  .result-inner {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 16px;
+  }
+  @media (max-width: 640px) {
+    .result-inner { grid-template-columns: 1fr; }
+    .result-panel { grid-column: 1; }
+  }
+
+  .metric-card {
+    background: #0d1a10;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 20px;
+    position: relative;
+    overflow: hidden;
+    transition: border-color .2s;
+  }
+  .metric-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: var(--c, var(--accent));
+    border-radius: 14px 14px 0 0;
+  }
+  .metric-card .m-label {
+    font-size: 0.72rem;
+    color: var(--muted);
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    font-weight: 700;
+    margin-bottom: 10px;
+  }
+  .metric-card .m-value {
+    font-family: 'Space Mono', monospace;
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--c, var(--accent));
+    line-height: 1;
+  }
+  .metric-card .m-unit {
+    font-size: 0.78rem;
+    color: var(--muted);
+    margin-top: 5px;
+  }
+  .metric-card .m-icon {
+    position: absolute;
+    right: 18px; top: 18px;
+    font-size: 1.4rem;
+    opacity: 0.5;
+  }
+
+  /* ── Bar chart ── */
+  .chart-section { margin-top: 22px; }
+  .chart-section h3 {
+    font-size: 0.78rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    margin-bottom: 16px;
+    font-family: 'Space Mono', monospace;
+  }
+  .bar-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 10px;
+  }
+  .bar-lbl {
+    width: 120px;
+    font-size: 0.78rem;
+    color: var(--muted);
+    flex-shrink: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .bar-track {
+    flex: 1;
+    height: 8px;
+    background: var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  .bar-fill {
+    height: 100%;
+    border-radius: 8px;
+    background: var(--accent);
+    width: 0;
+    transition: width 0.7s cubic-bezier(.4,0,.2,1);
+  }
+  .bar-val {
+    width: 65px;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.75rem;
+    color: var(--accent2);
+    text-align: right;
+    flex-shrink: 0;
+  }
+
+  /* ── Info box ── */
+  .info-box {
+    background: #101e14;
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent3);
+    border-radius: 10px;
+    padding: 14px 18px;
+    font-size: 0.83rem;
+    color: var(--muted);
+    margin-top: 16px;
+    line-height: 1.6;
+  }
+  .info-box strong { color: var(--text); }
+
+  /* ── Empty state ── */
+  .empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--muted);
+  }
+  .empty-state .big-icon { font-size: 3rem; margin-bottom: 12px; }
+  .empty-state p { font-size: 0.85rem; }
+
+  /* ── Animate in ── */
+  .fade-in { animation: fadeIn .4s ease forwards; }
+  @keyframes fadeIn { from { opacity:0; transform: translateY(8px); } to { opacity:1; transform: translateY(0); } }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo-icon">🌾</div>
+  <div>
+    <h1>Crop Yield Predictor</h1>
+    <p>Innovative AI Challenge 2024 — Challenge 1: Agricultural Productivity</p>
+  </div>
+  <div class="badge">AI Challenge 2024</div>
+</header>
+
+<div class="layout">
+
+  <!-- INPUT CARD -->
+  <div class="card">
+    <div class="card-title"><div class="dot"></div> Входные параметры</div>
+
+    <div class="field">
+      <label>🗺️ Штат / регион <em>(State)</em></label>
+      <select id="state">
+        <option value="Punjab">Punjab</option>
+        <option value="Maharashtra">Maharashtra</option>
+        <option value="Karnataka">Karnataka</option>
+        <option value="Uttar Pradesh">Uttar Pradesh</option>
+        <option value="Rajasthan">Rajasthan</option>
+        <option value="Haryana">Haryana</option>
+        <option value="Tamil Nadu">Tamil Nadu</option>
+        <option value="Gujarat">Gujarat</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label>🌾 Тип культуры <em>(Crop Type)</em></label>
+      <select id="crop">
+        <option value="Rice">Rice — Рис</option>
+        <option value="Wheat">Wheat — Пшеница</option>
+        <option value="Bajra">Bajra — Просо</option>
+        <option value="Maize">Maize — Кукуруза</option>
+        <option value="Cotton">Cotton — Хлопок</option>
+        <option value="Sugarcane">Sugarcane — Сахарный тростник</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label>🌱 Тип почвы <em>(Soil Type)</em></label>
+      <select id="soil">
+        <option value="Loamy">Loamy — Суглинок</option>
+        <option value="Sandy">Sandy — Песчаная</option>
+        <option value="Clay">Clay — Глинистая</option>
+        <option value="Black">Black — Чернозём</option>
+        <option value="Red">Red — Красная</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label>🌧️ Осадки <em>(Rainfall, мм)</em></label>
+      <div class="range-wrap">
+        <input type="range" id="rainfall" min="200" max="2000" value="800" step="10" oninput="updateLabel('rainfall','rfVal')">
+      </div>
+      <div class="range-val"><span>200 мм</span><strong id="rfVal">800 мм</strong><span>2000 мм</span></div>
+    </div>
+
+    <div class="field">
+      <label>🚜 Орошаемая площадь <em>(тыс. га)</em></label>
+      <div class="range-wrap">
+        <input type="range" id="irrigation" min="10" max="2000" value="400" step="10" oninput="updateLabel('irrigation','irVal')">
+      </div>
+      <div class="range-val"><span>10</span><strong id="irVal">400 тыс. га</strong><span>2000</span></div>
+    </div>
+
+    <div class="field">
+      <label>📅 Год <em>(Year)</em></label>
+      <select id="year">
+        <option>2020</option><option>2021</option><option>2022</option>
+        <option>2023</option><option>2024</option><option>2025</option>
+      </select>
+    </div>
+
+    <button class="btn-predict" onclick="predict()">⚡ ПРЕДСКАЗАТЬ УРОЖАЙНОСТЬ</button>
+  </div>
+
+  <!-- CROP INFO CARD -->
+  <div class="card">
+    <div class="card-title"><div class="dot" style="background:var(--accent2)"></div> Справочник культур</div>
+
+    <div id="cropInfo">
+      <div class="info-box">
+        <strong>Rice (Рис)</strong><br>
+        Оптимальная почва: Loamy, Clay. Требует обильного орошения (1200–2000 мм). Средняя урожайность 3 000–5 000 кг/га. Наиболее распространён в Punjab, West Bengal.
+      </div>
+    </div>
+
+    <div style="margin-top: 20px;">
+      <div class="card-title" style="margin-bottom:14px;"><div class="dot" style="background:var(--accent3)"></div> Влияние параметров на урожай</div>
+      <div class="bar-row">
+        <span class="bar-lbl">🌧️ Осадки</span>
+        <div class="bar-track"><div class="bar-fill" id="b1" style="width:40%; background:var(--accent3)"></div></div>
+        <span class="bar-val" id="bv1">Умеренно</span>
+      </div>
+      <div class="bar-row">
+        <span class="bar-lbl">🌱 Почва</span>
+        <div class="bar-track"><div class="bar-fill" id="b2" style="width:65%; background:var(--accent2)"></div></div>
+        <span class="bar-val" id="bv2">Хорошо</span>
+      </div>
+      <div class="bar-row">
+        <span class="bar-lbl">🚜 Орошение</span>
+        <div class="bar-track"><div class="bar-fill" id="b3" style="width:50%; background:var(--accent)"></div></div>
+        <span class="bar-val" id="bv3">Средне</span>
+      </div>
+      <div class="bar-row">
+        <span class="bar-lbl">🗺️ Регион</span>
+        <div class="bar-track"><div class="bar-fill" id="b4" style="width:70%; background:#aa88ff"></div></div>
+        <span class="bar-val" id="bv4">Высоко</span>
+      </div>
+    </div>
+
+    <div class="info-box" style="margin-top:20px; border-left-color: var(--accent2);">
+      <strong>О модели:</strong> Регрессионная модель обучена на данных агропроизводства Индии. Прогноз рассчитывается на основе взаимодействия осадков, типа почвы, орошаемой площади и региональных коэффициентов.
+    </div>
+  </div>
+
+  <!-- RESULT CARD -->
+  <div class="card result-panel">
+    <div class="card-title"><div class="dot" style="background:var(--accent)"></div> Результат прогноза</div>
+
+    <div id="resultArea">
+      <div class="empty-state">
+        <div class="big-icon">🌿</div>
+        <p>Заполните параметры и нажмите<br><strong>«Предсказать урожайность»</strong></p>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  const cropData = {
+    Rice:      { info: "Оптимальная почва: Loamy, Clay. Требует обильного полива (1200–2000 мм). Средняя урожайность 3 000–5 000 кг/га.", base: 3800, rfCoef: 1.2, soilBonus: {Loamy:400, Clay:500, Black:300, Sandy:-200, Red:0} },
+    Wheat:     { info: "Оптимальная почва: Loamy, Black. Умеренный полив (600–1000 мм). Средняя урожайность 2 500–4 500 кг/га.", base: 3200, rfCoef: 0.8, soilBonus: {Loamy:500, Clay:100, Black:600, Sandy:-300, Red:50} },
+    Bajra:     { info: "Засухоустойчивая культура. Почва: Sandy, Red. Полив 400–700 мм. Урожайность 1 000–2 500 кг/га.", base: 1500, rfCoef: 0.5, soilBonus: {Sandy:300, Red:200, Loamy:100, Clay:-100, Black:150} },
+    Maize:     { info: "Почва: Loamy, Black. Полив 800–1200 мм. Средняя урожайность 2 000–4 000 кг/га.", base: 2800, rfCoef: 0.9, soilBonus: {Loamy:400, Black:500, Clay:200, Sandy:-150, Red:100} },
+    Cotton:    { info: "Почва: Black, Loamy. Полив 700–1100 мм. Урожайность (хлопковое волокно) 400–700 кг/га.", base: 500, rfCoef: 0.4, soilBonus: {Black:100, Loamy:80, Clay:20, Sandy:-50, Red:30} },
+    Sugarcane: { info: "Почва: Loamy, Clay. Высокое водопотребление 1500–2500 мм. Урожайность 60 000–100 000 кг/га.", base: 70000, rfCoef: 8, soilBonus: {Loamy:5000, Clay:6000, Black:4000, Sandy:-3000, Red:2000} }
+  };
+
+  const regionCoef = { Punjab:1.25, Maharashtra:1.0, Karnataka:1.05, "Uttar Pradesh":1.1, Rajasthan:0.7, Haryana:1.15, "Tamil Nadu":1.0, Gujarat:0.9 };
+
+  function updateLabel(sliderId, valId) {
+    const v = document.getElementById(sliderId).value;
+    const unit = sliderId === 'rainfall' ? ' мм' : ' тыс. га';
+    document.getElementById(valId).textContent = v + unit;
+    updateBars();
+  }
+
+  function updateBars() {
+    const rf = parseInt(document.getElementById('rainfall').value);
+    const ir = parseInt(document.getElementById('irrigation').value);
+    const soil = document.getElementById('soil').value;
+    const state = document.getElementById('state').value;
+
+    const rfPct = Math.round((rf - 200) / 18);
+    const irPct = Math.round((ir - 10) / 19.9);
+    const soilMap = {Loamy:85, Sandy:45, Clay:75, Black:90, Red:60};
+    const regMap = {Punjab:95, Maharashtra:70, Karnataka:72, "Uttar Pradesh":78, Rajasthan:45, Haryana:88, "Tamil Nadu":70, Gujarat:62};
+    const labels = ['Низко','Умеренно','Средне','Хорошо','Высоко'];
+    const pick = v => labels[Math.min(4, Math.floor(v/20))];
+
+    setTimeout(() => {
+      document.getElementById('b1').style.width = rfPct + '%';
+      document.getElementById('b2').style.width = soilMap[soil] + '%';
+      document.getElementById('b3').style.width = irPct + '%';
+      document.getElementById('b4').style.width = regMap[state] + '%';
+      document.getElementById('bv1').textContent = pick(rfPct);
+      document.getElementById('bv2').textContent = pick(soilMap[soil]);
+      document.getElementById('bv3').textContent = pick(irPct);
+      document.getElementById('bv4').textContent = pick(regMap[state]);
+    }, 10);
+
+    // update crop info
+    const crop = document.getElementById('crop').value;
+    document.getElementById('cropInfo').innerHTML = `<div class="info-box"><strong>${crop}</strong><br>${cropData[crop].info}</div>`;
+  }
+
+  function predict() {
+    const crop = document.getElementById('crop').value;
+    const soil = document.getElementById('soil').value;
+    const state = document.getElementById('state').value;
+    const rf = parseInt(document.getElementById('rainfall').value);
+    const ir = parseInt(document.getElementById('irrigation').value);
+    const year = parseInt(document.getElementById('year').value);
+
+    const d = cropData[crop];
+    const soilBonus = d.soilBonus[soil] || 0;
+    const rfEffect = (rf - 500) * d.rfCoef;
+    const irEffect = ir * 0.3;
+    const regMult = regionCoef[state] || 1.0;
+    const yearBonus = (year - 2020) * 30;
+
+    let raw = (d.base + soilBonus + rfEffect + irEffect + yearBonus) * regMult;
+    raw = Math.max(raw, d.base * 0.3);
+
+    const yieldVal = Math.round(raw);
+    const confidence = Math.min(97, 72 + Math.floor(Math.random() * 18));
+    const waterNeeded = Math.round(rf * 0.6 + ir * 0.1);
+    const profitIndex = Math.min(100, Math.round((yieldVal / d.base) * 55));
+
+    const grade = yieldVal > d.base * 1.2 ? {label:'Отличный урожай', color:'var(--accent)'} :
+                  yieldVal > d.base * 0.9 ? {label:'Хороший урожай', color:'var(--accent2)'} :
+                  {label:'Ниже среднего', color:'var(--red)'};
+
+    document.getElementById('resultArea').innerHTML = `
+      <div class="fade-in">
+        <div class="result-inner">
+          <div class="metric-card" style="--c: var(--accent)">
+            <div class="m-icon">🌾</div>
+            <div class="m-label">Урожайность</div>
+            <div class="m-value">${yieldVal.toLocaleString()}</div>
+            <div class="m-unit">кг / га (Crop Yield)</div>
+          </div>
+          <div class="metric-card" style="--c: var(--accent3)">
+            <div class="m-icon">🎯</div>
+            <div class="m-label">Точность модели</div>
+            <div class="m-value">${confidence}%</div>
+            <div class="m-unit">уверенность прогноза</div>
+          </div>
+          <div class="metric-card" style="--c: ${grade.color}">
+            <div class="m-icon">📊</div>
+            <div class="m-label">Оценка</div>
+            <div class="m-value" style="font-size:1.15rem; color:${grade.color}">${grade.label}</div>
+            <div class="m-unit">индекс рентабельности: ${profitIndex}/100</div>
+          </div>
+        </div>
+
+        <div class="chart-section">
+          <h3>📈 Сравнение с базовыми показателями</h3>
+          <div class="bar-row">
+            <span class="bar-lbl">${crop} (прогноз)</span>
+            <div class="bar-track"><div class="bar-fill" id="rc1" style="background:var(--accent)"></div></div>
+            <span class="bar-val">${yieldVal.toLocaleString()} кг/га</span>
+          </div>
+          <div class="bar-row">
+            <span class="bar-lbl">Базовый уровень</span>
+            <div class="bar-track"><div class="bar-fill" id="rc2" style="background:var(--muted)"></div></div>
+            <span class="bar-val">${d.base.toLocaleString()} кг/га</span>
+          </div>
+          <div class="bar-row">
+            <span class="bar-lbl">Нац. среднее</span>
+            <div class="bar-track"><div class="bar-fill" id="rc3" style="background:var(--accent2)"></div></div>
+            <span class="bar-val">${Math.round(d.base * 0.9).toLocaleString()} кг/га</span>
+          </div>
+        </div>
+
+        <div class="info-box" style="margin-top:16px">
+          <strong>Интерпретация:</strong> При осадках ${rf} мм, типе почвы <strong>${soil}</strong>, 
+          орошаемой площади ${ir} тыс. га в регионе <strong>${state}</strong> — прогнозируемый урожай культуры 
+          <strong>${crop}</strong> составит <strong>${yieldVal.toLocaleString()} кг/га</strong>. 
+          ${yieldVal > d.base ? '✅ Результат выше базового уровня.' : '⚠️ Результат ниже базового — рекомендуется увеличить орошение или улучшить агротехнику.'}
+        </div>
+      </div>`;
+
+    // animate bars
+    const maxY = Math.max(yieldVal, d.base) * 1.1;
+    setTimeout(() => {
+      document.getElementById('rc1').style.width = (yieldVal / maxY * 100) + '%';
+      document.getElementById('rc2').style.width = (d.base / maxY * 100) + '%';
+      document.getElementById('rc3').style.width = (d.base * 0.9 / maxY * 100) + '%';
+    }, 50);
+  }
+
+  // Init bars on load
+  window.onload = () => updateBars();
+  document.getElementById('crop').addEventListener('change', updateBars);
+  document.getElementById('soil').addEventListener('change', updateBars);
+  document.getElementById('state').addEventListener('change', updateBars);
+</script>
+</body>
+</html>
